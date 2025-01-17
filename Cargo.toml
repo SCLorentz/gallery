@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 flate2 = "1.0.35"
+druid = "0.7"
+dirs = "4.0"
+if_empty = "0.3.0"
