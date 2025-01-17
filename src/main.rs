@@ -13,7 +13,7 @@ mod encoder;
 use encoder::*;
 
 mod settings;
-use settings::*;
+//use settings::*;
 
 #[derive(Clone, Data, Lens)]
 struct AppState
