@@ -1,19 +1,22 @@
 use std::path::PathBuf;
 
 use druid::{
-    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, widget::{Button, Flex, Label, TextBox}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, Lens, Widget, WidgetExt, WindowDesc
+    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, widget::{Button, Flex, Image, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, Lens, Widget, WidgetExt, WindowDesc
 };
 
 use if_empty::*;
 
-mod macos_menu;
-use macos_menu::*;
+mod mac;
+use mac::*;
 
 mod encoder;
 use encoder::*;
 
 mod settings;
 //use settings::*;
+
+mod image_handler;
+use image_handler::*;
 
 #[derive(Clone, Data, Lens)]
 struct AppState
@@ -24,11 +27,8 @@ struct AppState
 
 fn main()
 {
-    //let icon_data = fs::read("./meu_icon.png").expect("Erro ao carregar o ícone");
-    //let icon = ImageBuf::from_data(&icon_data).unwrap();
-
     let main_window = WindowDesc::new(build_ui())
-        .title("Compressor de Arquivos")
+        .title("Vizualizador de Imagens")
         .window_size((400.0, 250.0))
         .with_min_size((400.0, 400.0))
         .menu(make_menu);
@@ -46,30 +46,7 @@ fn main()
 
 fn build_ui() -> impl Widget<AppState>
 {
-    let input = TextBox::new()
-        .with_placeholder("Digite 'encode' ou 'decode'")
-        .fix_width(200.0)
-        .lens(AppState::mode);
-
-    let execute_button = Button::new("Executar").on_click(|_ctx, data: &mut AppState, _env|
-    {
-        if data.selected_file.is_empty()
-        {
-            println!("Nenhum arquivo selecionado!");
-            return;
-        }
-
-        let path = PathBuf::from(&data.selected_file);
-
-        match data.mode.as_str()
-        {
-            "encode" => encode(path).unwrap_or_else(|err| println!("Erro ao comprimir: {}", err)),
-            "decode" => decode(path).unwrap_or_else(|err| println!("Erro ao descomprimir: {}", err)),
-            _ => println!("Modo inválido! Use 'encode' ou 'decode'."),
-        }
-    });
-
-    let open_file_button = Button::new("Selecionar Arquivo").on_click(|ctx, _data, _env|
+    let open_file_button = Button::new("Import File(s)").on_click(|ctx, _data: &mut AppState, _env|
     {
         let options = FileDialogOptions::new()
             .name_label("Arquivo")
@@ -82,24 +59,32 @@ fn build_ui() -> impl Widget<AppState>
     let file_label = Label::new(|data: &AppState, _env: &_|
     {
         format!(
-            "Arquivo selecionado: {}",
+            "Importar Arquivo: {}",
             data.selected_file.clone().if_empty("Nenhum arquivo".to_string())
         )
     });
 
+    let image_buf = load_image("./default.jpg").unwrap_or_else(|err|
+    {
+        eprintln!("{}", err);
+        druid::ImageBuf::empty()
+    });
+
+    let image_widget = Image::new(image_buf)
+        .fix_width(300.0)
+        .fix_height(300.0)
+        .center();
+
     Flex::column()
-        .with_child(Label::new("Compressor de Arquivos").padding(10.0))
-        .with_child(input.padding(10.0))
         .with_child(open_file_button.padding(10.0))
         .with_child(file_label.padding(10.0))
-        .with_child(execute_button.padding(10.0))
+        .with_child(image_widget.padding(10.0))
         .controller(FileSelectionController)
 }
 
 struct FileSelectionController;
 
-impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelectionController
-{
+impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelectionController {
     fn event(
         &mut self,
         child: &mut W,
@@ -107,17 +92,22 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
         event: &Event,
         data: &mut AppState,
         env: &Env,
-    )
-    {
+    ) {
         if let Event::Command(cmd) = event
         {
-            let Some(file_info) = cmd.get(OPEN_FILE) else {
-                panic!("couldn't open file")
-            };
+            let Some(file_info) = cmd.get(OPEN_FILE) else { panic!("couldn't open file") };
 
             if let Some(path) = file_info.path().to_str()
             {
                 data.selected_file = path.to_string();
+
+                let path = PathBuf::from(&data.selected_file);
+
+                match path.extension().and_then(|ext| ext.to_str()).unwrap_or("")
+                {
+                    "gz" => decode(path).unwrap_or_else(|err| println!("Erro ao descomprimir: {}", err)),
+                    _ => encode(path).unwrap_or_else(|err| println!("Erro ao comprimir: {}", err)),
+                }
             }
         }
 
