@@ -41,7 +41,7 @@ fn decode() -> Result<(), std::io::Error>
 
     d.read_to_end(&mut buff)?;
 
-    let mut output = File::create("./file.test.svg")?;
+    let mut output = File::create("./file.svg")?;
     output.write_all(&buff)?;
 
     Ok(())
