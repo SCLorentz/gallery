@@ -12,6 +12,9 @@ use macos_menu::*;
 mod encoder;
 use encoder::*;
 
+mod settings;
+use settings::*;
+
 #[derive(Clone, Data, Lens)]
 struct AppState
 {
@@ -24,13 +27,10 @@ fn main()
     //let icon_data = fs::read("./meu_icon.png").expect("Erro ao carregar o ícone");
     //let icon = ImageBuf::from_data(&icon_data).unwrap();
 
-    let config = druid::WindowConfig::default()
-        .with_min_size((400.0, 250.0));
-
     let main_window = WindowDesc::new(build_ui())
         .title("Compressor de Arquivos")
         .window_size((400.0, 250.0))
-        .with_config(config)
+        .with_min_size((400.0, 400.0))
         .menu(make_menu);
 
     let initial_state = AppState

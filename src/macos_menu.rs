@@ -1,5 +1,7 @@
 use druid::{Data, Env, LocalizedString, Menu, MenuItem};
 
+//use crate::settings;
+
 pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: &Env) -> Menu<T>
 {
     let base_menu = Menu::new(LocalizedString::new("Application Menu"))
@@ -15,6 +17,8 @@ pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: 
         .entry(MenuItem::new(LocalizedString::new("Paste")).command(druid::commands::PASTE));
 
     let custom_menu = Menu::new(LocalizedString::new("Custom"))
+        /*.entry(MenuItem::new(LocalizedString::new("Settings"))
+            .on_activate(|_ctx, _data, _env| { build_settings(); }))*/
         .entry(MenuItem::new(LocalizedString::new("Quit").with_placeholder("Sair do App"))
             .command(druid::commands::QUIT_APP));
 
