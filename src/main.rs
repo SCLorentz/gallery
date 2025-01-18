@@ -88,7 +88,8 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
         event: &Event,
         data: &mut AppState,
         env: &Env,
-    ) {
+    )
+    {
         if let Event::Command(cmd) = event
         {
             let Some(file_info) = cmd.get(OPEN_FILE) else
@@ -97,38 +98,36 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
                 return;
             };
 
-            let Some(path) = file_info.path().to_str() else { return; };
+            let path = match file_info.path().to_str()
+            {
+                Some(path) => path,
+                None => return
+            };
 
             data.selected_file = path.to_string();
 
             let path = PathBuf::from(&data.selected_file);
 
-            match path.extension().and_then(|ext| ext.to_str()).unwrap_or("")
+            if path.extension().and_then(|ext| ext.to_str()).unwrap_or("") != "gz"
             {
-                "gz" =>
-                {
-                    let Ok(buffer) = decode(path) else
-                    {
-                        eprintln!("Erro ao descompactar arquivo");
-                        return;
-                    };
-
-                    if buffer.is_empty()
-                    {
-                        eprintln!("Buffer descompactado está vazio!");
-                        return;
-                    }
-
-                    let Ok(image_buf) = load_image_compressed(&buffer) else
-                    {
-                        eprintln!("Erro ao carregar imagem do buffer");
-                        return;
-                    };
-
-                    data.image = Some(image_buf);
-                },
-                _ => encode(path).unwrap_or_else(|err| println!("Erro ao comprimir: {}", err)),
+                encode(path).unwrap_or_else(|err| println!("Erro ao comprimir: {}", err));
+                return
             }
+
+            let buffer = decode(path).unwrap_or_else(|err| {
+                eprintln!("Erro ao descompactar arquivo: {}", err);
+                Vec::new()
+            });
+
+            if buffer.is_empty() { return }
+
+            let Ok(image_buf) = load_image_compressed(&buffer) else
+            {
+                eprintln!("Erro ao carregar imagem do buffer");
+                return;
+            };
+
+            data.image = Some(image_buf);
         }
 
         child.event(ctx, event, data, env);
