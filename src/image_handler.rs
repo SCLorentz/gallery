@@ -1,4 +1,6 @@
-use druid::{piet::ImageFormat, ImageBuf};
+use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, ImageBuf, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget};
+
+use crate::AppState;
 
 pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
 {
@@ -38,3 +40,72 @@ pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
         height as usize,
     ))
 }*/
+
+pub struct DynamicImage
+{
+    image: Option<ImageBuf>,
+}
+
+impl DynamicImage
+{
+    pub fn new() -> Self
+    {
+        Self { image: None }
+    }
+}
+
+// I used AI assistence in here
+impl Widget<AppState> for DynamicImage
+{
+    fn event(&mut self, _ctx: &mut EventCtx, _event: &Event, _data: &mut AppState, _env: &Env) {}
+
+    fn lifecycle(
+        &mut self,
+        ctx: &mut LifeCycleCtx,
+        event: &LifeCycle,
+        data: &AppState,
+        _env: &Env,
+    ) {
+        if let LifeCycle::WidgetAdded = event
+        {
+            self.image = data.image.clone();
+            ctx.request_paint();
+        }
+    }
+
+    fn update(
+        &mut self,
+        ctx: &mut UpdateCtx,
+        old_data: &AppState,
+        data: &AppState,
+        _env: &Env,
+    ) {
+        if !old_data.image.same(&data.image)
+        {
+            self.image = data.image.clone();
+            ctx.request_paint();
+        }
+    }
+
+    fn layout(
+        &mut self,
+        _ctx: &mut LayoutCtx,
+        bc: &BoxConstraints,
+        _data: &AppState,
+        _env: &Env,
+    ) -> Size {
+        bc.constrain((300.0, 300.0))
+    }
+
+    fn paint(&mut self, ctx: &mut PaintCtx, _data: &AppState, _env: &Env)
+    {
+        let Some(image) = &self.image else { return };
+
+        let size = image.size();
+        let rect = size.to_rect();
+
+        let Ok(core_graphics_image) = ctx.make_image(image.width(), image.height(), &image.raw_pixels(), image.format()) else { return };
+        
+        ctx.draw_image(&core_graphics_image, rect, druid::piet::InterpolationMode::Bilinear);
+    }
+}

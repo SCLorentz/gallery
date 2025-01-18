@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use druid::{
-    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, widget::{Button, Flex, Label}, AppLauncher, BoxConstraints, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, LayoutCtx, Lens, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget, WidgetExt, WindowDesc
+    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, widget::{Button, Flex, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Lens, Widget, WidgetExt, WindowDesc
 };
 
 use if_empty::*;
@@ -132,76 +132,5 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
         }
 
         child.event(ctx, event, data, env);
-    }
-}
-
-pub struct DynamicImage
-{
-    image: Option<ImageBuf>,
-}
-
-impl DynamicImage
-{
-    pub fn new() -> Self
-    {
-        Self { image: None }
-    }
-}
-
-// I used AI assistence in here
-impl Widget<AppState> for DynamicImage
-{
-    fn event(&mut self, _ctx: &mut EventCtx, _event: &Event, _data: &mut AppState, _env: &Env) {}
-
-    fn lifecycle(
-        &mut self,
-        ctx: &mut LifeCycleCtx,
-        event: &LifeCycle,
-        data: &AppState,
-        _env: &Env,
-    ) {
-        if let LifeCycle::WidgetAdded = event
-        {
-            self.image = data.image.clone();
-            ctx.request_paint();
-        }
-    }
-
-    fn update(
-        &mut self,
-        ctx: &mut UpdateCtx,
-        old_data: &AppState,
-        data: &AppState,
-        _env: &Env,
-    ) {
-        if !old_data.image.same(&data.image)
-        {
-            self.image = data.image.clone();
-            ctx.request_paint();
-        }
-    }
-
-    fn layout(
-        &mut self,
-        _ctx: &mut LayoutCtx,
-        bc: &BoxConstraints,
-        _data: &AppState,
-        _env: &Env,
-    ) -> Size {
-        bc.constrain((300.0, 300.0))
-    }
-
-    fn paint(&mut self, ctx: &mut PaintCtx, _data: &AppState, _env: &Env)
-    {
-        if let Some(image) = &self.image
-        {
-            let size = image.size();
-            let rect = size.to_rect();
-
-            if let Ok(core_graphics_image) = ctx.make_image(image.width(), image.height(), &image.raw_pixels(), image.format())
-            {
-                ctx.draw_image(&core_graphics_image, rect, druid::piet::InterpolationMode::Bilinear);
-            }
-        }
     }
 }

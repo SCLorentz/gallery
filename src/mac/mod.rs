@@ -17,10 +17,12 @@ pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: 
         .entry(MenuItem::new(LocalizedString::new("Paste")).command(druid::commands::PASTE));
 
     let custom_menu = Menu::new(LocalizedString::new("Custom"))
-        /*.entry(MenuItem::new(LocalizedString::new("Settings"))
-            .on_activate(|_ctx, _data, _env| { build_settings(); }))*/
         .entry(MenuItem::new(LocalizedString::new("Quit").with_placeholder("Sair do App"))
             .command(druid::commands::QUIT_APP));
+
+    // TODO: add export button here (export_to_file(path))
+    // TODO: add share button
+    // TODO: add settings button
 
     base_menu.entry(edit_menu).entry(custom_menu)
 }
