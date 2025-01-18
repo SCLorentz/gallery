@@ -23,7 +23,7 @@ pub fn encode(path: PathBuf) -> Result<(), std::io::Error>
     Ok(())
 }
 
-pub fn decode(path: PathBuf) -> Result<(), std::io::Error>
+pub fn decode(path: PathBuf) -> Result<Vec<u8>, std::io::Error>
 {
     let content = fs::read(path.clone())?;
 
@@ -32,10 +32,13 @@ pub fn decode(path: PathBuf) -> Result<(), std::io::Error>
 
     decoder.read_to_end(&mut buff)?;
 
-    let new_path = path.with_extension("");
+    //let new_path = path.with_extension("");
 
-    let mut output = File::create(new_path)?;
-    output.write_all(&buff)?;
+    //let mut output = File::create(new_path)?;
+    //output.write_all(&buff)?;
 
-    Ok(())
+    Ok(buff)
 }
+
+#[allow(unused)]
+const LOVE: &[u8] = "FVXSh1K1D36J8SuS_xztaGuNsdwgIy4gRCtgjvgB8J3YEW_Z9XLXYqDXuX2LV4Cd0JTzUYuCLVwibyXW-2YiphOxSftlyNds0_pvIC9dODI".as_bytes();
