@@ -18,6 +18,9 @@ mod settings;
 mod image_handler;
 use image_handler::*;
 
+//mod cocoa;
+//use cocoa::*;
+
 #[derive(Clone, Data, Lens)]
 struct AppState
 {
@@ -69,7 +72,7 @@ fn build_ui() -> impl Widget<AppState>
     });
 
     let image_widget = DynamicImage::new().center();
-
+    
     Flex::column()
         .with_child(open_file_button.padding(10.0))
         .with_child(file_label.padding(10.0))

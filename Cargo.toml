@@ -8,6 +8,9 @@ flate2 = "1.0.35"
 dirs = "4.0"
 if_empty = "0.3.0"
 image = "0.24"
+objc = "0.2"
+cocoa = "0.25"
+raw-window-handle = "0.4"
 
 [dependencies.druid]
 version = "0.8.3"
