@@ -2,6 +2,8 @@ use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, Image
 
 use crate::AppState;
 
+pub mod encoder;
+
 pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
 {
     if buffer.is_empty() {

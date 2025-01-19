@@ -9,22 +9,17 @@ use if_empty::*;
 mod mac;
 use mac::*;
 
-mod encoder;
-use encoder::*;
-
 mod settings;
-//use settings::*;
 
-mod image_handler;
-use image_handler::*;
+mod image;
 
-//mod cocoa;
-//use cocoa::*;
+use image::{
+    load_image_compressed, DynamicImage, encoder::{decode, encode}
+};
 
 #[derive(Clone, Data, Lens)]
 struct AppState
 {
-    // TODO: Add support for multiple files
     selected_file: String,
     image: Option<ImageBuf>,
     mode: String,
@@ -33,7 +28,7 @@ struct AppState
 fn main()
 {
     let main_window = WindowDesc::new(build_ui())
-        .title("Gallery")
+        .title("BHGallery")
         .window_size((400.0, 400.0))
         .with_min_size((400.0, 400.0))
         .menu(make_menu);
