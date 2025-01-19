@@ -1,5 +1,7 @@
 use druid::{Data, Env, LocalizedString, Menu, MenuItem};
 
+use crate::import_file;
+
 //use crate::settings;
 
 pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: &Env) -> Menu<T>
@@ -18,7 +20,9 @@ pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: 
 
     let custom_menu = Menu::new(LocalizedString::new("Custom"))
         .entry(MenuItem::new(LocalizedString::new("Quit").with_placeholder("Sair do App"))
-            .command(druid::commands::QUIT_APP));
+            .command(druid::commands::QUIT_APP))
+        .entry(MenuItem::new(LocalizedString::new("Import File"))
+            .on_activate(|ctx, _data, _env| import_file(ctx)));
 
     // TODO: add export button here (export_to_file(path))
     // TODO: add share button

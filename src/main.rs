@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use druid::{
-    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, widget::{Button, Flex, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Lens, Widget, WidgetExt, WindowDesc
+    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, menu::MenuEventCtx, widget::{Button, Flex, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Lens, Widget, WidgetExt, WindowDesc
 };
 
 use if_empty::*;
@@ -23,6 +23,17 @@ struct AppState
     selected_file: String,
     image: Option<ImageBuf>,
     mode: String,
+}
+
+pub fn import_file(ctx: &mut MenuEventCtx)
+{
+    let options = FileDialogOptions::new()
+        .name_label("Arquivo")
+        .title("Selecione um arquivo")
+        .multi_selection()
+        .button_text("Import");
+
+    ctx.submit_command(SHOW_OPEN_PANEL.with(options));
 }
 
 fn main()
@@ -47,7 +58,7 @@ fn main()
 
 fn build_ui() -> impl Widget<AppState>
 {
-    let open_file_button = Button::new("Import File(s)").on_click(|ctx, _data: &mut AppState, _env|
+    let open_file_button = Button::new("Import File(s)").on_click(|ctx, _data: &mut AppState, _env| 
     {
         let options = FileDialogOptions::new()
             .name_label("Arquivo")
@@ -90,11 +101,8 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
     {
         if let Event::Command(cmd) = event
         {
-            let Some(file_info) = cmd.get(OPEN_FILE) else
-            {
-                eprintln!("couldn't open file");
-                return;
-            };
+            assert!(cmd.get(OPEN_FILE).is_some(), "couldn't open file");
+            let file_info = cmd.get(OPEN_FILE).unwrap();
 
             let path = match file_info.path().to_str()
             {
@@ -105,10 +113,11 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
             data.selected_file = path.to_string();
 
             let path = PathBuf::from(&data.selected_file);
+            let extension = path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
 
-            if path.extension().and_then(|ext| ext.to_str()).unwrap_or("") != "gz"
+            if extension != "gz"
             {
-                encode(path).unwrap_or_else(|err| println!("Erro ao comprimir: {}", err));
+                assert!(encode(path).is_ok(), "Erro ao comprimir");
                 return
             }
 

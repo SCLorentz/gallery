@@ -36,7 +36,8 @@ pub fn decode(path: PathBuf) -> Result<Vec<u8>, std::io::Error>
 }
 
 // * decompresses and export the file to the selected path
-/*fn export_to_file(path: PathBuf) -> Result<(), std::io::Error>
+#[allow(unused)]
+pub fn export_to_file(path: PathBuf) -> Result<(), std::io::Error>
 {
     let content = fs::read(path.clone())?;
 
@@ -51,7 +52,4 @@ pub fn decode(path: PathBuf) -> Result<Vec<u8>, std::io::Error>
     output.write_all(&buff)?;
 
     Ok(())
-}*/
-
-#[allow(unused)]
-const LOVE: &[u8] = "FVXSh1K1D36J8SuS_xztaGuNsdwgIy4gRCtgjvgB8J3YEW_Z9XLXYqDXuX2LV4Cd0JTzUYuCLVwibyXW-2YiphOxSftlyNds0_pvIC9dODI".as_bytes();
+}

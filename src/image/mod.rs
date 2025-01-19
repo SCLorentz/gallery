@@ -1,5 +1,8 @@
 use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, ImageBuf, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget};
 
+use resvg::usvg::{Tree, Options};
+use tiny_skia::Pixmap;
+
 use crate::AppState;
 
 pub mod encoder;
@@ -28,7 +31,34 @@ pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
     ))
 }
 
-/*pub fn load_image(path: &str) -> Result<druid::ImageBuf, String>
+// TODO: Test if this works
+#[allow(unused)]
+pub fn render_svg_to_imagebuf(svg_path: &str, width: u32, height: u32) -> Result<ImageBuf, String>
+{
+    let opt = Options::default();
+    let svg_data = std::fs::read(svg_path).map_err(|err| format!("Erro ao ler o arquivo SVG: {}", err))?;
+    let tree = Tree::from_data(&svg_data, &opt).map_err(|err| format!("Erro ao carregar SVG: {}", err))?;
+
+    let mut pixmap = Pixmap::new(width, height).ok_or("Falha ao criar o Pixmap")?;
+
+    resvg::render(
+        &tree,
+        resvg::usvg::FitTo::Size(width, height),
+        tiny_skia::Transform::default(),
+        pixmap.as_mut()
+    )
+    .ok_or("Falha ao rasterizar o SVG")?;
+
+    Ok(ImageBuf::from_raw(
+        pixmap.data().to_vec(),
+        ImageFormat::RgbaSeparate,
+        width as usize,
+        height as usize,
+    ))
+}
+
+#[allow(unused)]
+pub fn load_image(path: &str) -> Result<druid::ImageBuf, String>
 {
     let dynamic_image = image::open(path)
         .map_err(|err| format!("Erro ao abrir a imagem: {}", err))?
@@ -41,7 +71,7 @@ pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
         width as usize,
         height as usize,
     ))
-}*/
+}
 
 pub struct DynamicImage
 {
@@ -103,8 +133,20 @@ impl Widget<AppState> for DynamicImage
     {
         let Some(image) = &self.image else { return };
 
-        let size = image.size();
-        let rect = size.to_rect();
+        let size = ctx.size();
+        let image_size = image.size();
+        let aspect_ratio = image_size.width / image_size.height;
+
+        let (new_width, new_height) = if size.width / aspect_ratio <= size.height
+        {
+            (size.width, size.width / aspect_ratio)
+        }
+        else
+        {
+            (size.height * aspect_ratio, size.height)
+        };
+
+        let rect = druid::kurbo::Rect::from_origin_size((0.0, 0.0), (new_width, new_height));
 
         let Ok(core_graphics_image) = ctx.make_image(image.width(), image.height(), &image.raw_pixels(), image.format()) else { return };
         
