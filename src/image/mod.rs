@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, ImageBuf, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget};
 
-use resvg::usvg::{Options, Path, Tree};
+use resvg::usvg::{Options, Tree};
 use tiny_skia::Pixmap;
 
 use crate::AppState;
