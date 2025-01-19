@@ -1,6 +1,8 @@
+use std::path::PathBuf;
+
 use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, ImageBuf, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget};
 
-use resvg::usvg::{Tree, Options};
+use resvg::usvg::{Options, Path, Tree};
 use tiny_skia::Pixmap;
 
 use crate::AppState;
@@ -53,8 +55,7 @@ pub fn render_svg_to_imagebuf(svg_path: &str, width: u32, height: u32) -> Result
     ))
 }
 
-#[allow(unused)]
-pub fn load_image(path: &str) -> Result<druid::ImageBuf, String>
+pub fn load_image(path: PathBuf) -> Result<druid::ImageBuf, String>
 {
     let dynamic_image = image::open(path)
         .map_err(|err| format!("Erro ao abrir a imagem: {}", err))?

@@ -14,7 +14,7 @@ mod settings;
 mod image;
 
 use image::{
-    load_image_compressed, DynamicImage, encoder::{decode, encode}
+    encoder::{decode, encode}, load_image, load_image_compressed, DynamicImage
 };
 
 #[derive(Clone, Data, Lens)]
@@ -117,7 +117,14 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
 
             if extension != "gz"
             {
-                assert!(encode(path).is_ok(), "Erro ao comprimir");
+                assert!(encode(path.clone()).is_ok(), "Erro ao comprimir");
+
+                match load_image(path)
+                {
+                    Ok(image_buf) => data.image = Some(image_buf),
+                    Err(err) => eprintln!("Erro ao carregar imagem: {}", err),
+                }
+
                 return
             }
 
