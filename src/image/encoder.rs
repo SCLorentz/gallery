@@ -8,7 +8,7 @@ use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 
 pub fn encode(path: PathBuf) -> Result<(), std::io::Error>
 {
-    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::best());
 
     let content = fs::read(path.clone())?;
     encoder.write_all(&content)?;

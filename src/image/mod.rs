@@ -130,11 +130,24 @@ impl Widget<AppState> for DynamicImage
         let Some(image) = &self.image else { return };
 
         let size = ctx.size();
-        let (width, height, ratio) = (size.width, size.height, size.width / size.height);
-        // new width and height
-        let (width, height) = if width / ratio <= height {(width, width / ratio)} else {(height * ratio, height)};
+        let image_size = image.size();
+        let aspect_ratio = image_size.width / image_size.height;
+        
+        let new_width;
+        let new_height;
 
-        let rect = druid::kurbo::Rect::from_origin_size((0.0, 0.0), (width, height));
+        if size.width / aspect_ratio <= size.height
+        {
+            new_width = size.width;
+            new_height = size.width / aspect_ratio;
+        }
+        else
+        {
+            new_width = size.height * aspect_ratio;
+            new_height = size.height;
+        }
+
+        let rect = druid::kurbo::Rect::from_origin_size((0.0, 0.0), (new_width, new_height));
 
         let Ok(core_graphics_image) = ctx.make_image(image.width(), image.height(), &image.raw_pixels(), image.format()) else { return };
         
