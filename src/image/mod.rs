@@ -9,9 +9,7 @@ pub mod encoder;
 
 pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
 {
-    if buffer.is_empty() {
-        return Err("O buffer está vazio!".to_string());
-    }
+    if buffer.is_empty() { return Err("O buffer está vazio!".to_string()) }
 
     let dynamic_image = image::load_from_memory(buffer)
         .map_err(|err| format!("Erro ao carregar a imagem: {}", err))?
@@ -19,9 +17,7 @@ pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
 
     let (width, height) = dynamic_image.dimensions();
 
-    if width == 0 || height == 0 {
-        return Err("Imagem carregada tem dimensões inválidas!".to_string());
-    }
+    if width == 0 || height == 0 { return Err("invalid image size".to_string()) }
 
     Ok(ImageBuf::from_raw(
         dynamic_image.into_raw(),
@@ -134,19 +130,11 @@ impl Widget<AppState> for DynamicImage
         let Some(image) = &self.image else { return };
 
         let size = ctx.size();
-        let image_size = image.size();
-        let aspect_ratio = image_size.width / image_size.height;
+        let (width, height, ratio) = (size.width, size.height, size.width / size.height);
+        // new width and height
+        let (width, height) = if width / ratio <= height {(width, width / ratio)} else {(height * ratio, height)};
 
-        let (new_width, new_height) = if size.width / aspect_ratio <= size.height
-        {
-            (size.width, size.width / aspect_ratio)
-        }
-        else
-        {
-            (size.height * aspect_ratio, size.height)
-        };
-
-        let rect = druid::kurbo::Rect::from_origin_size((0.0, 0.0), (new_width, new_height));
+        let rect = druid::kurbo::Rect::from_origin_size((0.0, 0.0), (width, height));
 
         let Ok(core_graphics_image) = ctx.make_image(image.width(), image.height(), &image.raw_pixels(), image.format()) else { return };
         
