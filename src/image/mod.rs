@@ -2,32 +2,13 @@ use std::path::PathBuf;
 
 use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, ImageBuf, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget};
 
+use image::{ImageBuffer, Rgba};
 use resvg::usvg::{Options, Tree};
 use tiny_skia::Pixmap;
 
 use crate::AppState;
 
 pub mod encoder;
-
-pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
-{
-    if buffer.is_empty() { return Err("O buffer está vazio!".to_string()) }
-
-    let dynamic_image = image::load_from_memory(buffer)
-        .map_err(|err| format!("Erro ao carregar a imagem: {}", err))?
-        .to_rgba8();
-
-    let (width, height) = dynamic_image.dimensions();
-
-    if width == 0 || height == 0 { return Err("invalid image size".to_string()) }
-
-    Ok(ImageBuf::from_raw(
-        dynamic_image.into_raw(),
-        ImageFormat::RgbaSeparate,
-        width as usize,
-        height as usize,
-    ))
-}
 
 // TODO: Test if this works
 #[allow(unused)]
@@ -55,6 +36,21 @@ pub fn render_svg_to_imagebuf(svg_path: &str, width: u32, height: u32) -> Result
     ))
 }
 
+pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
+{
+    if buffer.is_empty() { return Err("O buffer está vazio!".to_string()) }
+
+    let dynamic_image = image::load_from_memory(buffer)
+        .map_err(|err| format!("Erro ao carregar a imagem: {}", err))?
+        .to_rgba8();
+
+    let (width, height) = dynamic_image.dimensions();
+
+    if width == 0 || height == 0 { return Err("invalid image size".to_string()) }
+
+    Ok(druid_buff(dynamic_image, width, height))
+}
+
 pub fn load_image(path: PathBuf) -> Result<druid::ImageBuf, String>
 {
     let dynamic_image = image::open(path)
@@ -62,12 +58,17 @@ pub fn load_image(path: PathBuf) -> Result<druid::ImageBuf, String>
         .to_rgba8();
 
     let (width, height) = dynamic_image.dimensions();
-    Ok(druid::ImageBuf::from_raw(
+    Ok(druid_buff(dynamic_image, width, height))
+}
+
+fn druid_buff(dynamic_image: ImageBuffer<Rgba<u8>, Vec<u8>>, width: u32, height: u32) -> druid::ImageBuf
+{
+    druid::ImageBuf::from_raw(
         dynamic_image.into_raw(),
         ImageFormat::RgbaSeparate,
         width as usize,
         height as usize,
-    ))
+    )
 }
 
 pub struct DynamicImage

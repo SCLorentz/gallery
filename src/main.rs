@@ -25,15 +25,20 @@ struct AppState
     mode: String,
 }
 
-pub fn import_file(ctx: &mut MenuEventCtx)
+pub fn import_file(ctx: (Option<&mut MenuEventCtx>, Option<&mut EventCtx>))
 {
     let options = FileDialogOptions::new()
-        .name_label("Arquivo")
-        .title("Selecione um arquivo")
+        .name_label("Files")
+        .title("Import files")
         .multi_selection()
         .button_text("Import");
 
-    ctx.submit_command(SHOW_OPEN_PANEL.with(options));
+    match ctx
+    {
+        (Some(menu_ctx), None) => menu_ctx.submit_command(SHOW_OPEN_PANEL.with(options)),
+        (None, Some(event_ctx)) => event_ctx.submit_command(SHOW_OPEN_PANEL.with(options)),
+        _ => eprintln!("unexpected arguments passed to `import_file`"),
+    }
 }
 
 fn main()
@@ -53,29 +58,19 @@ fn main()
 
     AppLauncher::with_window(main_window)
         .launch(initial_state)
-        .expect("Falha ao lançar a aplicação");
+        .expect("Error while launching the application");
 }
 
 fn build_ui() -> impl Widget<AppState>
 {
-    let open_file_button = Button::new("Import File(s)").on_click(|ctx, _data: &mut AppState, _env| 
-    {
-        let options = FileDialogOptions::new()
-            .name_label("Arquivo")
-            .title("Selecione um arquivo")
-            .multi_selection()
-            .button_text("Import");
-
-        ctx.submit_command(SHOW_OPEN_PANEL.with(options));
-    });
+    let open_file_button = Button::new("Import File(s)").on_click(|ctx, _data: &mut AppState, _env| import_file((None, Some(ctx))));
 
     let file_label = Label::new(|data: &AppState, _env: &_|
-    {
         format!(
-            "Import File: {}",
-            data.selected_file.clone().if_empty("Nenhum arquivo".to_string())
+            "Import: {}",
+            data.selected_file.clone().if_empty("None".to_string())
         )
-    });
+    );
 
     let image_widget = DynamicImage::new().center();
     
@@ -101,14 +96,13 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
     {
         if let Event::Command(cmd) = event
         {
-            assert!(cmd.get(OPEN_FILE).is_some(), "couldn't open file");
-            let file_info = cmd.get(OPEN_FILE).unwrap();
-
-            let path = match file_info.path().to_str()
+            let Some(file_info) = cmd.get(OPEN_FILE) else
             {
-                Some(path) => path,
-                None => return
+                eprintln!("couldn't open file");
+                return;
             };
+
+            let Some(path) = file_info.path().to_str() else { return };
 
             data.selected_file = path.to_string();
 
