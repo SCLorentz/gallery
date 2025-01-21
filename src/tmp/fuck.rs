@@ -1,7 +1,7 @@
-use std::{fs, path::PathBuf};
+use std::{fmt::Result, fs, path::PathBuf};
 
 use druid::{
-    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, menu::MenuEventCtx, widget::{Button, Flex, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Lens, Widget, WidgetExt, WindowDesc
+    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, menu::MenuEventCtx, platform_menus::mac::file, widget::{Button, Flex, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Lens, Widget, WidgetExt, WindowDesc
 };
 
 use infer;
@@ -98,68 +98,61 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
     {
         if let Event::Command(cmd) = event
         {
-            let Some(file_info) = cmd.get(OPEN_FILE) else
+            if let Err(err) = (|| -> Result<(), std::io::Error>
             {
-                eprintln!("couldn't open file");
-                return;
-            };
+                let file_info = cmd.get(OPEN_FILE)
+                    .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "couldn't open file"))?;
 
-            let Some(path) = file_info.path().to_str() else { return };
+                let path = file_info.path().to_str()
+                    .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "invalid path"))?;
 
-            data.selected_file = path.to_string();
+                data.selected_file = path.to_string();
 
-            let path = PathBuf::from(&data.selected_file);
+                let path = PathBuf::from(&data.selected_file);
 
-            let content = match fs::read(path.clone())
-            {
-                Ok(content) => content,
-                Err(err) =>
+                let content = fs::read(path.clone())?;
+
+                let kind = infer::get(&content)
+                    .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "file type not detected"))?;
+                
+                println!("Tipo detectado: {}", kind.mime_type());
+
+                match kind.mime_type()
                 {
-                    eprintln!("Erro ao ler o arquivo: {}", err);
-                    return
-                },
-            };
-
-            let Some(kind) = infer::get(&content) else
-            {
-                eprintln!("Tipo de arquivo não detectado");
-                return
-            };
-            
-            println!("Tipo detectado: {}", kind.mime_type());
-
-            match kind.mime_type()
-            {
-                "image/jpeg" | "image/png" | "image/gif" | "image/bmp" | "image/webp" => 
-                {
-                    let Ok(image_buf) = load_image(path.clone()) else
+                    "image/jpeg" | "image/png" | "image/gif" | "image/bmp" | "image/webp" => 
                     {
-                        eprintln!("Erro ao carregar imagem");
-                        return;
-                    };
+                        let image_buf = load_image(path.clone())
+                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
-                    data.image = Some(image_buf);
+                        data.image = Some(image_buf);
 
-                    assert!(encode(path, content).is_ok(), "Erro ao comprimir");
-                },
-                "application/gzip" => data.image = Some(handle_gzip(content).unwrap_or_else(|err|
-                {
-                    eprintln!("Erro ao carregar imagem: {}", err);
-                    ImageBuf::empty()
-                })),
-                _ => todo!(),
+                        assert!(encode(path, content).is_ok(), "Erro ao comprimir");
+                    },
+                    "application/gzip" =>
+                    {
+                        let image_buf = handle_gzip(content).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+
+                        data.image = Some(image_buf);
+                    },
+                    _ => todo!(),
+                }
+
+                Ok(())
+            })() {
+                eprintln!("Erro: {}", err);
             }
         }
-
-        child.event(ctx, event, data, env);
     }
+        //child.event(ctx, event, data, env);
 }
 
-fn handle_gzip(content: Vec<u8>) -> Result<ImageBuf, std::io::Error>
+fn handle_gzip(content: Vec<u8>) -> std::result::Result<ImageBuf, std::io::Error>
 {
-    let buffer = decode(content)?;
+    let buffer = decode(content)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
-    let image_buf = load_image_compressed(&buffer).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+    let image_buf = load_image_compressed(&buffer)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
     return Ok(image_buf);
 }
