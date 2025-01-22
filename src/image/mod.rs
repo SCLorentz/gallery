@@ -3,38 +3,10 @@ use std::path::PathBuf;
 use druid::{piet::ImageFormat, BoxConstraints, Data, Env, Event, EventCtx, ImageBuf, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, RenderContext, Size, UpdateCtx, Widget};
 
 use image::{ImageBuffer, Rgba};
-use resvg::usvg::{Options, Tree};
-use tiny_skia::Pixmap;
 
 use crate::AppState;
 
 pub mod encoder;
-
-// TODO: Test if this works
-#[allow(unused)]
-pub fn render_svg_to_imagebuf(svg_path: &str, width: u32, height: u32) -> Result<ImageBuf, String>
-{
-    let opt = Options::default();
-    let svg_data = std::fs::read(svg_path).map_err(|err| format!("Erro ao ler o arquivo SVG: {}", err))?;
-    let tree = Tree::from_data(&svg_data, &opt).map_err(|err| format!("Erro ao carregar SVG: {}", err))?;
-
-    let mut pixmap = Pixmap::new(width, height).ok_or("Falha ao criar o Pixmap")?;
-
-    resvg::render(
-        &tree,
-        resvg::usvg::FitTo::Size(width, height),
-        tiny_skia::Transform::default(),
-        pixmap.as_mut()
-    )
-    .ok_or("Falha ao rasterizar o SVG")?;
-
-    Ok(ImageBuf::from_raw(
-        pixmap.data().to_vec(),
-        ImageFormat::RgbaSeparate,
-        width as usize,
-        height as usize,
-    ))
-}
 
 pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
 {

@@ -22,7 +22,9 @@ pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: 
         .entry(MenuItem::new(LocalizedString::new("Quit").with_placeholder("Sair do App"))
             .command(druid::commands::QUIT_APP))
         .entry(MenuItem::new(LocalizedString::new("Import File"))
-            .on_activate(|ctx, _data, _env| import_file((Some(ctx), None))));
+            .on_activate(|ctx, _data, _env| import_file((Some(ctx), None))))
+        .entry(MenuItem::new(LocalizedString::new("Decompress file"))
+            .on_activate(|_ctx, _data, _env| todo!()));
 
     // TODO: add export button here (export_to_file(path))
     // TODO: add share button
