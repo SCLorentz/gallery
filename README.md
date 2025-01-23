@@ -14,3 +14,7 @@
 - [ ] Add support for open multiple files
 - [ ] Add settings window
 - [ ] Add support for SVGs (working on)
+
+### windows
+
+- criar botões de controle do app integrados na janela para replicar o mac, mas no estilo do windows
