@@ -1,19 +1,11 @@
-use druid::{widget::{Flex, Label}, Widget, WidgetExt, WindowDesc};
+use druid::{widget::{Button, Flex, Label}, Widget};
 
-use crate::{make_menu, AppState};
+use crate::AppState;
 
-#[allow(unused)]
-pub fn generate_window()
-{
-    let settings_window = WindowDesc::new(build_settings())
-        .title("Configurações")
-        .window_size((400.0, 250.0))
-        .resizable(false)
-        .menu(make_menu);
-}
-
-pub fn build_settings() -> impl Widget<AppState>
+pub fn build_settings_ui() -> impl Widget<AppState>
 {
     Flex::column()
-        .with_child(Label::new("Settings").padding(10.0))
+        .with_child(Label::new("Configurações"))
+        .with_spacer(20.0)
+        .with_child(Button::new("Fechar").on_click(|ctx, _data: &mut AppState, _env| ctx.window().close()))
 }

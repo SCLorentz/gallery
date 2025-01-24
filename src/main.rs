@@ -1,17 +1,19 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, sync::Arc};
 
 use druid::{
-    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, menu::MenuEventCtx, widget::{Button, Flex, Label}, AppLauncher, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Lens, Widget, WidgetExt, WindowDesc
+    commands::{OPEN_FILE, SHOW_OPEN_PANEL}, menu::MenuEventCtx, widget::{Button, Flex, Label}, AppLauncher, Command, Data, Env, Event, EventCtx, FileDialogOptions, Handled, ImageBuf, Lens, Target, Widget, WidgetExt, WindowDesc, WindowId
 };
 
 use infer;
 
 use if_empty::*;
 
+#[cfg(target_os = "macos")]
 mod mac;
-use mac::*;
+use mac as mac_mod;
 
 mod settings;
+use settings::build_settings_ui;
 
 mod image;
 
@@ -25,6 +27,7 @@ struct AppState
     selected_file: String,
     image: Option<ImageBuf>,
     mode: String,
+    settings_window_id: Option<Arc<druid::WindowId>>,
 }
 
 pub fn import_file(ctx: (Option<&mut MenuEventCtx>, Option<&mut EventCtx>))
@@ -43,22 +46,28 @@ pub fn import_file(ctx: (Option<&mut MenuEventCtx>, Option<&mut EventCtx>))
     }
 }
 
+pub const SHOW_SETTINGS: druid::Selector = druid::Selector::new("app.show-settings");
+
 fn main()
 {
     let main_window = WindowDesc::new(build_ui())
         .title("BHGallery")
         .window_size((400.0, 400.0))
-        .with_min_size((400.0, 400.0))
-        .menu(make_menu);
+        .with_min_size((400.0, 400.0));
+    
+    #[cfg(target_os = "macos")]
+    let main_window = main_window.menu(|id, data, env| mac_mod::make_menu(id, data, env));
 
     let initial_state = AppState
     {
         selected_file: "".to_string(),
         mode: "".to_string(),
         image: None,
+        settings_window_id: None
     };
 
     AppLauncher::with_window(main_window)
+        .delegate(Delegate {})
         .launch(initial_state)
         .expect("Error while launching the application");
 }
@@ -75,8 +84,11 @@ fn build_ui() -> impl Widget<AppState>
     );
 
     let image_widget = DynamicImage::new().center();
+
+    let open_settings = Button::new("Settings").on_click(|ctx, _data: &mut AppState, _env| ctx.submit_command(SHOW_SETTINGS));
     
     Flex::column()
+        .with_child(open_settings.padding(10.0))
         .with_child(open_file_button.padding(10.0))
         .with_child(file_label.padding(10.0))
         .with_child(image_widget.padding(10.0))
@@ -162,4 +174,44 @@ fn handle_gzip(content: Vec<u8>) -> Result<ImageBuf, std::io::Error>
     let image_buf = load_image_compressed(&buffer).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
     return Ok(image_buf);
+}
+
+struct Delegate;
+
+impl druid::AppDelegate<AppState> for Delegate
+{
+    fn command(
+        &mut self,
+        ctx: &mut druid::DelegateCtx,
+        _target: Target,
+        cmd: &Command,
+        data: &mut AppState,
+        _env: &Env,
+    ) -> Handled {
+        if cmd.is(SHOW_SETTINGS)
+        {
+            if data.settings_window_id.is_none()
+            {
+                let settings_window = WindowDesc::new(build_settings_ui())
+                    .title("Configurações")
+                    .window_size((500.0, 400.0));
+                    /*.with_config(|builder: &mut WindowBuilder|
+                    {
+                        builder
+                            .with_title("Configurações")
+                            .with_inner_size(winit::dpi::LogicalSize::new(600.0, 500.0))
+                            .with_decorations(false)
+                            .with_titlebar_transparent(true)
+                            .with_fullsize_content_view(true)
+                    });*/
+                ctx.new_window(settings_window);
+                
+                data.settings_window_id = Some(Arc::new(WindowId::next()));
+            }
+            return Handled::Yes;
+        }
+        Handled::No
+    }
+
+    // TODO: make the settings window close whanever the main window is closed
 }
