@@ -142,7 +142,7 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
 
             match kind.mime_type()
             {
-                "image/jpeg" | "image/png" | "image/gif" | "image/bmp" | "image/webp" => 
+                c if c.starts_with("image/") => 
                 {
                     let Ok(image_buf) = load_image(path.clone()) else
                     {
@@ -159,7 +159,18 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
                     eprintln!("Erro ao carregar imagem: {}", err);
                     ImageBuf::empty()
                 })),
-                _ => todo!(),
+                file_type =>
+                {
+                    let svg = content.iter().take(5).eq(b"<?xml");
+
+                    if svg
+                    {
+                        eprintln!("Not supported (yet)");
+                        return
+                    }
+                    
+                    eprintln!("Not supported type of file: {}", file_type);
+                },
             }
         }
 
@@ -192,18 +203,10 @@ impl druid::AppDelegate<AppState> for Delegate
         {
             if data.settings_window_id.is_none()
             {
+                // TODO: set a custom title bar for the settings window
                 let settings_window = WindowDesc::new(build_settings_ui())
                     .title("Configurações")
                     .window_size((500.0, 400.0));
-                    /*.with_config(|builder: &mut WindowBuilder|
-                    {
-                        builder
-                            .with_title("Configurações")
-                            .with_inner_size(winit::dpi::LogicalSize::new(600.0, 500.0))
-                            .with_decorations(false)
-                            .with_titlebar_transparent(true)
-                            .with_fullsize_content_view(true)
-                    });*/
                 ctx.new_window(settings_window);
                 
                 data.settings_window_id = Some(Arc::new(WindowId::next()));
