@@ -1,0 +1,10 @@
+[package]
+name = "src-skia"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+glow = "0.16.0"
+skia-safe = { version = "0.82.0", features = ["gl"] }
+toml = "0.8.20"
+winit = "0.30.9"

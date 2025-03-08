@@ -1,5 +1,6 @@
-/target
+**/target
 .vscode
 .VSCodeCounter
 .Cargo.lock
 **.app
+.DS_Store
