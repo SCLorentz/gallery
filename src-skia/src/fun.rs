@@ -18,16 +18,15 @@ impl Aluno<'_>
 
     pub fn get_status(&mut self) -> String
     {
-        if self.status.is_none()
-        {
-            self.status = Some(self.nota >= 6.0)
-        }
-
         match self.status
         {
             Some(true) => "\x1b[32mpassed\x1b[39m".to_owned(),
             Some(false) => "\x1b[31mfailed\x1b[39m".to_owned(),
-            _ => String::new(),
+            None =>
+            {
+                self.status = Some(self.nota >= 6.0);
+                return self.get_status()
+            }
         }
     }
 }
@@ -46,6 +45,15 @@ fn main()
     ];
 
     print_status(alunos);
+
+    let produtos = vec![
+        Product { name: "leite", price: 32 },
+        Product { name: "ovo", price: 64 },
+        Product { name: "licor", price: 100 },
+        Product { name: "mel", price: 59 },
+    ];
+
+    println!("{:#?}", filtrar(produtos, 64, 31));
 }
 
 fn print_status(alunos: Vec<Aluno>) -> Vec<Aluno<'_>>
@@ -78,4 +86,19 @@ fn print_status(alunos: Vec<Aluno>) -> Vec<Aluno<'_>>
     println!("{}\x1B[?25h", "=".repeat(bar));
 
     alunos
+}
+
+// https://www.youtube.com/shorts/oBEZiQaRZao
+
+#[derive(Debug, Clone)]
+struct Product<'a>
+{
+    #[allow(unused)]
+    name: &'a str,
+    price: usize,
+}
+
+fn filtrar(list: Vec<Product>, max: usize, min: usize) -> Vec<Product>
+{
+    list.into_iter().filter(|x| x.price > min && x.price < max).collect()
 }
