@@ -52,7 +52,7 @@ fn get_status(alunos: Vec<Aluno>) -> Vec<Aluno<'_>>
 
     println!("{}{}{}", "=".repeat(bar / 2), "0", "=".repeat(bar / 2));
 
-    for x in 0..to_print.len()
+    for x in to_print.len()
     {
         println!("{}{}|", to_print[x], " ".repeat(last - to_print[x].len() + 1));
     }
