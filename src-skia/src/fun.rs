@@ -23,30 +23,14 @@ impl Aluno<'_>
             self.status = Some(self.nota >= 6.0)
         }
 
-        self.status.into_iter().map(|x| match x
+        match self.status
         {
-            false => "\x1b[31mfailed\x1b[39m",
-            _ => "\x1b[32mpassed\x1b[39m"
-        })
-        .collect::<Vec<&str>>()[0].to_owned()
+            Some(true) => "\x1b[32mpassed\x1b[39m".to_owned(),
+            Some(false) => "\x1b[31mfailed\x1b[39m".to_owned(),
+            _ => String::new(),
+        }
     }
 }
-
-/*struct Box
-{
-    size: usize,
-    content: Vec<&'static str>, // each value inside vec represents one line
-}
-
-impl Box
-{
-    pub fn new(size: usize, content: Vec<&'static str>) -> Self
-    {
-        Self { size, content }
-    }
-
-    pub print()
-}*/
 
 fn main()
 {
@@ -57,7 +41,8 @@ fn main()
         Aluno::new("Jose", 5.0, None),
         Aluno::new("Pedro", 4.0, None),
         Aluno::new("Ana", 6.0, None),
-        Aluno::new("Alice", 7.0, None)
+        Aluno::new("Alice", 7.0, None),
+        Aluno::new("Valentina", 8.0, None),
     ];
 
     print_status(alunos);
@@ -65,32 +50,32 @@ fn main()
 
 fn print_status(alunos: Vec<Aluno>) -> Vec<Aluno<'_>>
 {
-    let mut last = 0;
+    let mut last  = 0;
     let mut to_print = Vec::<String>::new();
 
-    for i in 0..alunos.len()
+    for mut aluno in alunos.to_owned()
     {
-        let mut aluno = alunos[i].to_owned();
-
         let status = aluno.get_status();
         
         let val = format!("| \x1b[33m{}\x1b[39m: {}", aluno.nome, status);
 
-        if val.len() > last { last = val.len() }
+        last = last.max(val.len());
 
         to_print.push(val.clone());
     }
 
     let bar = last - 18;
+    let top = format!("{}", "=".repeat(bar / 2));
 
-    println!("{}{}{}", "=".repeat(bar / 2), "0", "=".repeat(bar / 2));
+    print!("\x1B[2J\x1B[H\x1B[?25l");
+    println!("Lista de Status:\n{}{}{}", top, "\u{2764}", top);
 
-    for x in 0..to_print.len()
+    for line in to_print
     {
-        println!("{}{}|", to_print[x], " ".repeat(last - to_print[x].len() + 1));
+        println!("{}{}|", line, " ".repeat(last - line.len() + 1));
     }
 
-    println!("{}", "=".repeat(bar));
+    println!("{}\x1B[?25h", "=".repeat(bar));
 
     alunos
 }
