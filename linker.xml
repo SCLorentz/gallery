@@ -1,0 +1,21 @@
+<!DOCTYPE INK>
+<index>
+    <headers>
+        <!--DOS Header-->
+        <MZ><disabled>This program cannot run in DOS mode.</disabled></MZ>
+        <!--Optional Header-->
+        <OptH>
+            <info src="info.jsonc"/>
+        </OptH>
+    </headers>
+    <data>
+        <import src="myLib.hpp" target="win">
+        <import src="user32.dll">
+        <import src="utils.runtime.python3" as="python">
+    </data>
+    <text>
+        <script type="python">
+            print("Hello World from python!")
+        </script>
+    </text>
+</index>
