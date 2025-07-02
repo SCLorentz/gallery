@@ -1,5 +1,4 @@
 use std::{
-    ffi::CString,
     fs,
     path::PathBuf,
     sync::Arc,

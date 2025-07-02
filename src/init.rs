@@ -1,11 +1,11 @@
 use std::ffi::CString;
 
 unsafe extern "C" {
-    pub fn create_image(img_path: *const i8, size_mb: i32) -> i32;
-    pub fn attach_image(img_path: *const i8, device_buf: *mut i8, buf_size: usize) -> i32;
-    pub fn format_apfs(device: *const i8, volume_name: *const i8) -> i32;
-    pub fn write_image(mount_point: *const i8, filename: *const i8, content: *const i8) -> i32;
-    pub fn detach_image(device_buf: *mut i8) -> i32;
+    fn create_image(img_path: *const i8, size_mb: i32) -> i32;
+    fn attach_image(img_path: *const i8, device_buf: *mut i8, buf_size: usize) -> i32;
+    fn format_apfs(device: *const i8, volume_name: *const i8) -> i32;
+    fn write_image(mount_point: *const i8, filename: *const i8, content: *const i8) -> i32;
+    fn detach_image(device_buf: *mut i8) -> i32;
 }
 
 pub fn init_bhg()
