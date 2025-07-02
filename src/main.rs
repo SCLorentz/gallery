@@ -1,8 +1,4 @@
-use std::{
-    fs,
-    path::PathBuf,
-    sync::Arc,
-};
+use std::{fs, path::PathBuf, sync::Arc};
 
 use druid::{
     commands::{OPEN_FILE, SHOW_OPEN_PANEL},
@@ -42,12 +38,10 @@ struct AppState
     settings_window_id: Option<Arc<druid::WindowId>>,
 }
 
-// Selectors
 pub const SHOW_SETTINGS: druid::Selector = druid::Selector::new("app.show-settings");
 
 fn main()
 {
-    // check if the file `bhg.img` exists, if not, call the 'init_bhg' function
     let img_path = "bhg.img";
     if !PathBuf::from(img_path).exists()
     {
@@ -116,6 +110,7 @@ pub fn import_file(ctx: (Option<&mut MenuEventCtx>, Option<&mut EventCtx>))
     }
 }
 
+// TODO: this is fuking terrible to read
 struct FileSelectionController;
 
 impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelectionController

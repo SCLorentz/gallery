@@ -39,7 +39,7 @@ int attach_image(const char* img_path, char* device_buf, size_t buf_size)
     }
     pclose(pipe);
 
-    // Remove newline do device_buf
+    // Remove newline of device_buf
     size_t len = strlen(device_buf);
     if (len > 0 && device_buf[len-1] == '\n')
         device_buf[len-1] = '\0';
