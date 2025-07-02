@@ -1,7 +1,0 @@
-[button]
-bg_color = "#3498db"
-border_radius = 10
-text_color = "#ffffff"
-
-[window]
-bg_color = "#2c3e50"
