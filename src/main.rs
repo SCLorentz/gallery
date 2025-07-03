@@ -13,7 +13,9 @@ use if_empty::*;
 
 #[cfg(target_os = "macos")]
 mod mac;
-use mac as mac_mod;
+
+mod app;
+use app::{WindowManager};
 
 mod settings;
 use settings::build_settings_ui;
@@ -29,6 +31,12 @@ use image::{
 mod init;
 use init::init_bhg;
 
+/*#[cfg(target_os = "macos")]
+extern "C"
+{
+    fn init_window();
+}*/
+
 #[derive(Clone, Data, Lens)]
 struct AppState
 {
@@ -43,18 +51,9 @@ pub const SHOW_SETTINGS: druid::Selector = druid::Selector::new("app.show-settin
 fn main()
 {
     let img_path = "bhg.img";
-    if !PathBuf::from(img_path).exists()
-    {
-        init_bhg();
-    }
+    if !PathBuf::from(img_path).exists() { init_bhg(); }
 
-    let main_window = WindowDesc::new(build_ui())
-        .title("BHGallery")
-        .window_size((400.0, 400.0))
-        .with_min_size((400.0, 400.0));
-
-    #[cfg(target_os = "macos")]
-    let main_window = main_window.menu(|id, data, env| mac_mod::make_menu(id, data, env));
+    let mut main_window = WindowManager::new("BHGallery", 400.0, 400.0, build_ui);
 
     let initial_state = AppState {
         selected_file: "".to_string(),
@@ -63,7 +62,7 @@ fn main()
         settings_window_id: None,
     };
 
-    AppLauncher::with_window(main_window)
+    AppLauncher::with_window(main_window.window.take().unwrap())
         .delegate(Delegate {})
         .launch(initial_state)
         .expect("Error while launching the application");
@@ -96,7 +95,7 @@ fn build_ui() -> impl Widget<AppState>
 
 pub fn import_file(ctx: (Option<&mut MenuEventCtx>, Option<&mut EventCtx>))
 {
-    let options = FileDialogOptions::new()
+    let opt = FileDialogOptions::new()
         .name_label("Files")
         .title("Import files")
         .multi_selection()
@@ -104,8 +103,8 @@ pub fn import_file(ctx: (Option<&mut MenuEventCtx>, Option<&mut EventCtx>))
 
     match ctx
     {
-        (Some(menu_ctx), None) => menu_ctx.submit_command(SHOW_OPEN_PANEL.with(options)),
-        (None, Some(event_ctx)) => event_ctx.submit_command(SHOW_OPEN_PANEL.with(options)),
+        (Some(m), None) => m.submit_command(SHOW_OPEN_PANEL.with(opt)),
+        (None, Some(e)) => e.submit_command(SHOW_OPEN_PANEL.with(opt)),
         _ => eprintln!("unexpected arguments passed to `import_file`"),
     }
 }

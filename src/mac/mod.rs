@@ -19,10 +19,8 @@ pub fn make_menu<T: Data>(_window_id: Option<druid::WindowId>, _data: &T, _env: 
         .entry(MenuItem::new(LocalizedString::new("Copy")).command(druid::commands::COPY))
         .entry(MenuItem::new(LocalizedString::new("Paste")).command(druid::commands::PASTE));
 
-    let custom_menu = Menu::new(LocalizedString::new("Custom"))
+    let custom_menu = Menu::new(LocalizedString::new("File"))
         .entry(MenuItem::new("Configurações").command(SHOW_SETTINGS))
-        .entry(MenuItem::new(LocalizedString::new("Quit").with_placeholder("Sair do App"))
-            .command(druid::commands::QUIT_APP))
         .entry(MenuItem::new(LocalizedString::new("Import File"))
             .on_activate(|ctx, _data, _env| import_file((Some(ctx), None))))
         .entry(MenuItem::new(LocalizedString::new("Decompress file"))

@@ -1,6 +1,7 @@
 use std::{ffi::CString, sync::LazyLock};
 
-unsafe extern "C" {
+unsafe extern "C"
+{
     fn create_image(img_path: *const i8, size_mb: i32) -> i32;
     fn format_apfs(device: *const i8, volume_name: *const i8) -> i32;
     fn write_image(mount_point: *const i8, filename: *const i8, content: *const i8) -> i32;

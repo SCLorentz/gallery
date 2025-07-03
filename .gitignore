@@ -5,3 +5,8 @@
 **.app
 .DS_Store
 **.img
+src/mac/libmacgui.dylib
+src/mac/macgui.abi.json
+src/mac/macgui.swiftmodule
+src/mac/macgui.swiftsourceinfo
+src/mac/macgui.swiftdoc
