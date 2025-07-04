@@ -15,12 +15,10 @@ pub fn encode(path: PathBuf, content: Vec<u8>) -> Result<()>
         .and_then(|e| e.to_str())
         .unwrap_or("");
 
-    save_on_path(
+    Ok(save_on_path(
         path.with_extension(format!("{ext}z")),
         encoder.finish()?
-    )?;
-
-    Ok(())
+    )?)
 }
 
 fn save_on_path(path: PathBuf, content: Vec<u8>) -> Result<()>

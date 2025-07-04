@@ -115,14 +115,7 @@ struct FileSelectionController;
 
 impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelectionController
 {
-    fn event(
-        &mut self,
-        child: &mut W,
-        ctx: &mut EventCtx,
-        event: &Event,
-        data: &mut AppState,
-        env: &Env,
-    )
+    fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env)
     {
         if let Event::Command(cmd) = event
         {
@@ -205,29 +198,20 @@ struct Delegate;
 
 impl druid::AppDelegate<AppState> for Delegate
 {
-    fn command(
-        &mut self,
-        ctx: &mut druid::DelegateCtx,
-        _target: Target,
-        cmd: &Command,
-        data: &mut AppState,
-        _env: &Env,
-    ) -> Handled
+    fn command(&mut self, ctx: &mut druid::DelegateCtx, _target: Target, cmd: &Command, data: &mut AppState, _env: &Env) -> Handled
     {
-        if cmd.is(SHOW_SETTINGS)
-        {
-            if data.settings_window_id.is_none()
-            {
-                let settings_window = WindowDesc::new(build_settings_ui())
-                    .title("Configurações")
-                    .window_size((500.0, 400.0));
-                ctx.new_window(settings_window);
+        if !cmd.is(SHOW_SETTINGS) { return Handled::No; }
 
-                data.settings_window_id = Some(Arc::new(WindowId::next()));
-            }
-            return Handled::Yes;
+        if data.settings_window_id.is_none()
+        {
+            let settings_window = WindowDesc::new(build_settings_ui())
+                .title("Configurações")
+                .window_size((500.0, 400.0));
+            ctx.new_window(settings_window);
+
+            data.settings_window_id = Some(Arc::new(WindowId::next()));
         }
-        Handled::No
+        Handled::Yes
     }
 
     // TODO: make the settings window close whenever the main window is closed
