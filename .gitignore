@@ -1,12 +1,17 @@
+# Build artifacts
 **/target
-.vscode
-.VSCodeCounter
-.Cargo.lock
 **.app
-.DS_Store
 **.img
+
+# macOS system files
+.DS_Store
+
+# VSCode settings and extensions
+.vscode*
+
+# Rust/Cargo
+.Cargo.lock
+
+# macOS specific build outputs
+src/mac/macgui.*
 src/mac/libmacgui.dylib
-src/mac/macgui.abi.json
-src/mac/macgui.swiftmodule
-src/mac/macgui.swiftsourceinfo
-src/mac/macgui.swiftdoc
