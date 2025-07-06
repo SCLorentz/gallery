@@ -22,7 +22,7 @@ use settings::build_settings_ui;
 
 mod image;
 use image::{
-    encoder::{decode, encode},
+    //encoder::{decode, encode},
     load_image,
     load_image_compressed,
     DynamicImage,
@@ -31,11 +31,13 @@ use image::{
 mod init;
 use init::init_bhg;
 
-/*#[cfg(target_os = "macos")]
 extern "C"
 {
+    #[cfg(target_os = "macos")]
     fn init_window();
-}*/
+
+    fn to_heif(input_file: *const i8) -> i32;
+}
 
 #[derive(Clone, Data, Lens)]
 struct AppState
@@ -160,38 +162,25 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
 
                     data.image = Some(image_buf);
 
-                    assert!(encode(path, content).is_ok(), "Erro ao comprimir");
+                    unsafe {
+                        use std::ffi::CString;
+                        let c_path = CString::new(path.to_string_lossy().as_bytes()).unwrap();
+                        let result = to_heif(c_path.as_ptr());
+                        if result != 0 {
+                            eprintln!("Falha ao converter para HEIF");
+                        }
+                    };
                 },
-                "application/gzip" => data.image = Some(handle_gzip(content).unwrap_or_else(|err|
-                {
-                    eprintln!("Erro ao carregar imagem: {}", err);
-                    ImageBuf::empty()
-                })),
-                file_type =>
-                {
-                    let svg = content.iter().take(5).eq(b"<?xml");
-
-                    if svg
-                    {
-                        eprintln!("Not supported (yet)");
-                        return;
-                    }
-
-                    eprintln!("Not supported type of file: {}", file_type);
+                "application/gzip" => todo!("review older version of this code"),
+                _ => {
+                    eprintln!("Tipo de arquivo não suportado: {}", kind.mime_type());
+                    return;
                 },
             }
         }
 
         child.event(ctx, event, data, env);
     }
-}
-
-fn handle_gzip(content: Vec<u8>) -> Result<ImageBuf, std::io::Error>
-{
-    let buffer = decode(content)?;
-    let image_buf = load_image_compressed(&buffer)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-    Ok(image_buf)
 }
 
 struct Delegate;

@@ -7,7 +7,7 @@ use druid::{
 
 use image::{ImageBuffer, Rgba};
 use crate::AppState;
-pub mod encoder;
+//pub mod encoder;
 
 pub fn load_image_compressed(buffer: &[u8]) -> Result<ImageBuf, String>
 {
@@ -36,14 +36,9 @@ pub fn load_image(path: PathBuf) -> Result<druid::ImageBuf, String>
     Ok(druid_buff(dynamic_image, width, height))
 }
 
-fn druid_buff(dynamic_image: ImageBuffer<Rgba<u8>, Vec<u8>>, width: u32, height: u32) -> druid::ImageBuf
+fn druid_buff(img: ImageBuffer<Rgba<u8>, Vec<u8>>, w: u32, h: u32) -> druid::ImageBuf
 {
-    druid::ImageBuf::from_raw(
-        dynamic_image.into_raw(),
-        ImageFormat::RgbaSeparate,
-        width as usize,
-        height as usize,
-    )
+    druid::ImageBuf::from_raw(img.into_raw(), ImageFormat::RgbaSeparate, w as usize, h as usize)
 }
 
 pub struct DynamicImage { image: Option<ImageBuf> }
@@ -78,10 +73,7 @@ impl Widget<AppState> for DynamicImage
         ctx.request_paint();
     }
 
-    fn layout(&mut self, _ctx: &mut LayoutCtx, bc: &BoxConstraints, _data: &AppState, _env: &Env) -> Size
-{
-        bc.constrain((300.0, 300.0))
-    }
+    fn layout(&mut self, _ctx: &mut LayoutCtx, bc: &BoxConstraints, _data: &AppState, _env: &Env) -> Size { bc.constrain((300.0, 300.0)) }
 
     fn paint(&mut self, ctx: &mut PaintCtx, _data: &AppState, _env: &Env)
     {
@@ -91,11 +83,9 @@ impl Widget<AppState> for DynamicImage
         let (size, image_size) = (ctx.size(), image.size());
         let ratio = image_size.width / image_size.height;
 
-        let (new_width, new_height) = if size.width / ratio <= size.height {
-            (size.width, size.width / ratio)
-        } else {
-            (size.height * ratio, size.height)
-        };
+        let (new_width, new_height) =
+        if size.width / ratio <= size.height {(size.width, size.width / ratio)}
+        else {(size.height * ratio, size.height)};
 
         let rect = Rect::from_origin_size((0.0, 0.0), (new_width, new_height));
 
