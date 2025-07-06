@@ -33,10 +33,10 @@ use init::init_bhg;
 
 extern "C"
 {
-    #[cfg(target_os = "macos")]
-    fn init_window();
+    /*#[cfg(target_os = "macos")]
+    fn init_window();*/
 
-    fn to_heif(input_file: *const i8) -> i32;
+    fn to_heif(input_file: *const i8) -> *const i8;
 }
 
 #[derive(Clone, Data, Lens)]
@@ -163,11 +163,12 @@ impl<W: Widget<AppState>> druid::widget::Controller<AppState, W> for FileSelecti
                     data.image = Some(image_buf);
 
                     unsafe {
-                        use std::ffi::CString;
+                        use std::ffi::{CString, CStr};
                         let c_path = CString::new(path.to_string_lossy().as_bytes()).unwrap();
                         let result = to_heif(c_path.as_ptr());
-                        if result != 0 {
-                            eprintln!("Falha ao converter para HEIF");
+                        if !result.is_null() {
+                            eprintln!("{}", CStr::from_ptr(result).to_string_lossy());
+                            libc::free(result as *mut _); // Libera a memória alocada em C++
                         }
                     };
                 },
